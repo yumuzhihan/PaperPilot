@@ -1,0 +1,115 @@
+2026-02-15 19:30:29 - [AgentEngine] - INFO - STARTED: 正在检索知网数据...
+2026-02-15 19:30:34 - [AgentEngine] - INFO - COMPLETED: 正在检索知网数据...
+2026-02-15 19:30:34 - [AgentEngine] - INFO - 开始生成大纲...
+2026-02-15 19:31:09 - [AgentEngine] - INFO - 开始: 正在检索知网数据...
+2026-02-15 19:31:14 - [AgentEngine] - INFO - 结束: 正在检索知网数据...
+2026-02-15 19:31:14 - [AgentEngine] - INFO - 开始生成大纲...
+2026-02-15 19:31:52 - [chat] - INFO - 用户发送了一条消息
+2026-02-15 19:31:52 - [chat] - INFO - 助手回复完成，共 16 字符
+2026-02-15 19:31:52 - [PaperAnalyzer] - INFO - [bold blue]开始分析论文:[/bold blue] Attention Is All You Need
+2026-02-15 19:31:52 - [LLM_Client] - INFO - [cyan]发送提示:[/cyan] 请分析论文《Attention Is All You Need》的核心贡献和创新点
+2026-02-15 19:31:52 - [LLM_Client] - INFO - [yellow]开始接收流式响应...[/yellow]
+2026-02-15 19:31:53 - [LLM_Client] - INFO - [green]✓ 响应完成[/green] (共 79 字符)
+2026-02-15 19:31:53 - [PaperAnalyzer] - INFO - [bold green]✓ 分析完成[/bold green]
+2026-02-15 19:31:53 - [MultiRound] - INFO - [bold cyan]用户:[/bold cyan] 你好，请介绍一下你自己
+2026-02-15 19:31:53 - [MultiRound] - INFO - [bold green]AI:[/bold green]
+2026-02-15 19:31:54 - [MultiRound] - INFO - [bold cyan]用户:[/bold cyan] 你能做什么？
+2026-02-15 19:31:55 - [MultiRound] - INFO - [bold green]AI:[/bold green]
+2026-02-15 19:31:55 - [Progress] - INFO - [cyan]正在生成长文本...[/cyan]
+2026-02-15 19:31:56 - [Progress] - INFO - 进度: 40.7%
+2026-02-15 19:31:56 - [Progress] - INFO - 进度: 81.3%
+2026-02-15 19:31:57 - [Progress] - INFO - [green]✓ 生成完成[/green] (总计 123 字符)
+2026-02-15 19:38:54 - [chat] - INFO - 用户发送了一条消息
+2026-02-15 19:38:55 - [chat] - INFO - 助手回复完成，共 16 字符
+2026-02-15 19:38:55 - [PaperAnalyzer] - INFO - [bold blue]开始分析论文:[/bold blue] Attention Is All You Need
+2026-02-15 19:38:55 - [LLM_Client] - INFO - [cyan]发送提示:[/cyan] 请分析论文《Attention Is All You Need》的核心贡献和创新点
+2026-02-15 19:38:55 - [LLM_Client] - INFO - [yellow]开始接收流式响应...[/yellow]
+2026-02-15 19:38:55 - [LLM_Client] - INFO - [green]✓ 响应完成[/green] (共 79 字符)
+2026-02-15 19:38:55 - [PaperAnalyzer] - INFO - [bold green]✓ 分析完成[/bold green]
+2026-02-15 19:38:55 - [MultiRound] - INFO - [bold cyan]用户:[/bold cyan] 你好，请介绍一下你自己
+2026-02-15 19:38:56 - [MultiRound] - INFO - [bold green]AI:[/bold green]
+2026-02-15 19:38:56 - [MultiRound] - INFO - [bold cyan]用户:[/bold cyan] 你能做什么？
+2026-02-15 19:38:57 - [MultiRound] - INFO - [bold green]AI:[/bold green]
+2026-02-15 19:38:58 - [Progress] - INFO - [cyan]正在生成长文本...[/cyan]
+2026-02-15 19:38:58 - [Progress] - INFO - 进度: 40.7%
+2026-02-15 19:38:59 - [Progress] - INFO - 进度: 81.3%
+2026-02-15 19:38:59 - [Progress] - INFO - [green]✓ 生成完成[/green] (总计 123 字符)
+2026-02-15 19:39:43 - [chat] - INFO - 用户发送了一条消息
+2026-02-15 19:39:44 - [chat] - INFO - 助手回复完成，共 16 字符
+2026-02-15 19:39:44 - [PaperAnalyzer] - INFO - [bold blue]开始分析论文:[/bold blue] Attention Is All You Need
+2026-02-15 19:39:44 - [LLM_Client] - INFO - [cyan]发送提示:[/cyan] 请分析论文《Attention Is All You Need》的核心贡献和创新点
+2026-02-15 19:39:44 - [LLM_Client] - INFO - [yellow]开始接收流式响应...[/yellow]
+2026-02-15 19:39:44 - [LLM_Client] - INFO - [green]✓ 响应完成[/green] (共 79 字符)
+2026-02-15 19:39:44 - [PaperAnalyzer] - INFO - [bold green]✓ 分析完成[/bold green]
+2026-02-15 19:39:44 - [MultiRound] - INFO - [bold cyan]用户:[/bold cyan] 你好，请介绍一下你自己
+2026-02-15 19:39:45 - [MultiRound] - INFO - [bold green]AI:[/bold green]
+2026-02-15 19:39:45 - [MultiRound] - INFO - [bold cyan]用户:[/bold cyan] 你能做什么？
+2026-02-15 19:39:46 - [MultiRound] - INFO - [bold green]AI:[/bold green]
+2026-02-15 19:39:47 - [Progress] - INFO - [cyan]正在生成长文本...[/cyan]
+2026-02-15 19:39:48 - [Progress] - INFO - [green]✓ 生成完成[/green] (总计 123 字符)
+2026-02-15 19:45:51 - [MainFlow] - INFO - 开始: 正在检索相关文献...
+2026-02-15 19:45:53 - [MainFlow] - INFO - 检索到 3 篇相关论文
+2026-02-15 19:45:54 - [MainFlow] - INFO - 结束: 正在检索相关文献...
+2026-02-15 19:45:54 - [MainFlow] - INFO - 开始生成大纲
+2026-02-15 19:45:58 - [MainFlow] - INFO - 生成完毕，全文字数: 165
+2026-02-15 19:46:29 - [MainFlow] - INFO - 开始: 正在检索相关文献...
+2026-02-15 19:46:31 - [MainFlow] - INFO - 检索到 3 篇相关论文
+2026-02-15 19:46:32 - [MainFlow] - INFO - 结束: 正在检索相关文献...
+2026-02-15 19:46:32 - [MainFlow] - INFO - 开始生成大纲
+2026-02-15 19:46:35 - [MainFlow] - INFO - 生成完毕，全文字数: 165
+2026-02-15 19:47:59 - [MainFlow] - INFO - 开始: 正在检索相关文献...
+2026-02-15 19:48:01 - [MainFlow] - INFO - 检索到 3 篇相关论文
+2026-02-15 19:48:02 - [MainFlow] - INFO - 结束: 正在检索相关文献...
+2026-02-15 19:48:02 - [MainFlow] - INFO - 开始生成大纲
+2026-02-15 19:48:05 - [MainFlow] - INFO - 生成完毕，全文字数: 165
+2026-02-15 19:48:25 - [MainFlow] - INFO - 开始: 正在检索相关文献...
+2026-02-15 19:48:27 - [MainFlow] - INFO - 检索到 3 篇相关论文
+2026-02-15 19:48:28 - [MainFlow] - INFO - 结束: 正在检索相关文献...
+2026-02-15 19:48:28 - [MainFlow] - INFO - 开始生成大纲
+2026-02-15 19:48:31 - [MainFlow] - INFO - 生成完毕，全文字数: 165
+2026-02-15 19:50:12 - [MainFlow] - INFO - 开始: 正在检索相关文献...
+2026-02-15 19:50:14 - [MainFlow] - INFO - 检索到 3 篇相关论文
+2026-02-15 19:50:15 - [MainFlow] - INFO - 结束: 正在检索相关文献...
+2026-02-15 19:50:15 - [MainFlow] - INFO - 开始生成大纲
+2026-02-15 19:50:18 - [MainFlow] - INFO - 生成完毕，全文字数: 165
+2026-02-15 19:50:29 - [MainFlow] - INFO - 开始: 正在检索相关文献...
+2026-02-15 19:50:31 - [MainFlow] - INFO - 检索到 3 篇相关论文
+2026-02-15 19:50:32 - [MainFlow] - INFO - 结束: 正在检索相关文献...
+2026-02-15 19:50:32 - [MainFlow] - INFO - 开始生成大纲
+2026-02-15 19:50:36 - [MainFlow] - INFO - 生成完毕，全文字数: 165
+2026-02-15 19:50:47 - [MainFlow] - INFO - 开始: 正在检索相关文献...
+2026-02-15 19:50:49 - [MainFlow] - INFO - 检索到 3 篇相关论文
+2026-02-15 19:50:50 - [MainFlow] - INFO - 结束: 正在检索相关文献...
+2026-02-15 19:50:50 - [MainFlow] - INFO - 开始生成大纲
+2026-02-15 19:50:54 - [MainFlow] - INFO - 生成完毕，全文字数: 165
+2026-02-15 19:51:13 - [MainFlow] - INFO - 开始: 正在检索相关文献...
+2026-02-15 19:51:15 - [MainFlow] - INFO - 检索到 3 篇相关论文
+2026-02-15 19:51:16 - [MainFlow] - INFO - 结束: 正在检索相关文献...
+2026-02-15 19:51:16 - [MainFlow] - INFO - 开始生成大纲
+2026-02-15 19:51:19 - [MainFlow] - INFO - 生成完毕，全文字数: 165
+2026-02-15 19:52:40 - [MainFlow] - INFO - 开始: 正在检索相关文献...
+2026-02-15 19:52:42 - [MainFlow] - INFO - 检索到 3 篇相关论文
+2026-02-15 19:52:43 - [MainFlow] - INFO - 结束: 正在检索相关文献...
+2026-02-15 19:52:43 - [MainFlow] - INFO - 开始生成大纲
+2026-02-15 19:52:59 - [MainFlow] - INFO - 生成完毕，全文字数: 779
+2026-02-15 19:53:33 - [MainFlow] - INFO - 开始: 正在检索相关文献...
+2026-02-15 19:53:35 - [MainFlow] - INFO - 检索到 3 篇相关论文
+2026-02-15 19:53:36 - [MainFlow] - INFO - 结束: 正在检索相关文献...
+2026-02-15 19:53:36 - [MainFlow] - INFO - 开始生成大纲
+2026-02-15 19:53:52 - [MainFlow] - INFO - 生成完毕，全文字数: 779
+2026-02-15 19:55:59 - [MainFlow] - INFO - 开始: 正在检索相关文献...
+2026-02-15 19:56:01 - [MainFlow] - INFO - 检索到 3 篇相关论文
+2026-02-15 19:56:02 - [MainFlow] - INFO - 结束: 正在检索相关文献...
+2026-02-15 19:56:02 - [MainFlow] - INFO - 开始生成大纲
+2026-02-15 19:56:19 - [MainFlow] - INFO - 生成完毕，全文字数: 779
+2026-02-15 19:57:29 - [MainFlow] - INFO - 开始: 正在检索相关文献...
+2026-02-15 19:57:31 - [MainFlow] - INFO - 检索到 3 篇相关论文
+2026-02-15 19:57:32 - [MainFlow] - INFO - 结束: 正在检索相关文献...
+2026-02-15 19:57:32 - [MainFlow] - INFO - 开始生成大纲
+2026-02-15 19:57:48 - [MainFlow] - INFO - 生成完毕，全文字数: 779
+2026-02-15 22:51:53 - [History] - INFO - Turn finished. Role: assistant, Length: 902
+2026-02-15 22:54:05 - [History] - INFO - Turn finished. Role: assistant, Length: 1081
+2026-02-15 22:59:09 - [History] - INFO - Turn finished. Role: assistant, Length: 572
+2026-02-15 23:03:54 - [file_write] - ERROR - file_write 出错：[Errno 13] Permission denied: '/root/federated_knowledge_distillation_summary.md'
+2026-02-15 23:04:37 - [file_write] - ERROR - file_write 出错：[Errno 13] Permission denied: '/home/user'
+2026-02-15 23:06:54 - [History] - INFO - Turn finished. Role: assistant, Length: 250
