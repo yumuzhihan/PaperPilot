@@ -1,10 +1,8 @@
 from pathlib import Path
 from datetime import datetime
-from rich.style import Style
-from rich.live import Live
-from rich.panel import Panel
-from rich.markdown import Markdown
-
+import json
+import re
+from rich.rule import Rule
 from src.config import settings
 from src.llms import llm_factory
 from src.models.message import ChatHistory, Message
@@ -32,56 +30,59 @@ class AgentEngine:
     async def chat(self, user_input: str):
         self.memory.messages.append(Message(role="user", content=user_input))
 
-        full_response_text = ""
-        current_thinking_text = ""
+        self.console.print("")
 
         is_thinking = False
 
-        thinking_style = Style(color="bright_black", italic=True)
-        content_style = Style(color="white")
-        tool_style = Style(color="cyan")
+        async for chunk in self.llm.response_stream(self.memory):
+            if isinstance(chunk, str):
 
-        with Live(
-            console=self.console, refresh_per_second=10, vertical_overflow="visible"
-        ) as live:
-            async for chunk in self.llm.response_stream(self.memory):
-                if isinstance(chunk, str):
-                    if "> **Thinking Process:**" in chunk:
-                        is_thinking = True
-                        chunk = chunk.replace("> **Thinking Process:**", "")
+                if "> 🛠️" in chunk:
+                    self.console.print()
 
-                    elif "\n\n---\n\n" in chunk:
-                        is_thinking = False
-                        chunk = chunk.replace("\n\n---\n\n", "")
-
-                    elif "> 🛠️" in chunk:
-                        is_thinking = False
+                    tool_name = "Unknown"
+                    match = re.search(r"`(.*?)`", chunk)
+                    if match:
+                        tool_name = match.group(1)
 
                     if is_thinking:
-                        current_thinking_text += chunk
-                    else:
-                        full_response_text += chunk
-
-                    render_content = ""
-                    if current_thinking_text:
-                        render_content += f"> *Thinking:*\n> {current_thinking_text.replace(chr(10), chr(10)+'> ')}\n\n"
-
-                    if full_response_text:
-                        render_content += full_response_text
-
-                    panel = Panel(
-                        Markdown(render_content),
-                        title="🤖 Agent Response",
-                        subtitle="Thinking..." if is_thinking else "Finished",
-                        border_style="green" if not is_thinking else "yellow",
+                        self.console.print("\n")
+                        is_thinking = False
+                    self.console.print(
+                        Rule(
+                            f"🛠️ Calling: [bold cyan]{tool_name}[/bold cyan]",
+                            style="blue",
+                            align="center",
+                        )
                     )
+                    continue
 
-                    live.update(panel)
+                if "> **Thinking Process:**" in chunk:
+                    self.console.print()
+                    is_thinking = True
+                    chunk = chunk.replace("> **Thinking Process:**\n\n", "").replace(
+                        "> **Thinking Process:**", ""
+                    )
+                    self.console.print("\n[dim]⚡ Thinking:[/dim]\n", end="")
 
+                elif "\n\n---\n\n" in chunk:
+                    self.console.print()
+
+                    is_thinking = False
+                    chunk = chunk.replace("\n\n---\n\n", "")
+                    self.console.print("\n")
+
+                if chunk:
+                    if is_thinking:
+                        self.console.print(chunk, style="dim", end="")
+                    else:
+                        self.console.print(chunk, end="")
+
+        self.console.print("\n")
+        self.console.print(Rule(style="dim"))
         self._save_turn_log()
 
     def _save_turn_log(self):
-        # 这里可以使用你的 Logger
         logger = LoggerFactory.get_logger("History")
         last_msg = self.memory.messages[-1]
         logger.info(
@@ -102,3 +103,31 @@ class AgentEngine:
                 f.write(f"# {role}\n\n{content}\n\n---\n\n")
 
         self.console.print(f"[green]历史记录已导出: {path}[/green]")
+
+
+def optimize_tool_args(tool_name, args_json_str):
+    """
+    优化工具参数显示：
+    1. 如果是 write_file，截断 content 内容。
+    2. 尝试格式化 JSON 以便漂亮显示。
+    """
+    try:
+        args = json.loads(args_json_str)
+
+        if tool_name == "write_file" and "content" in args:
+            content = args["content"]
+            lines = content.split("\n")
+            if len(lines) > 5:
+                preview = "\n".join(lines[:5])
+                args["content"] = f"{preview}\n\n... (剩余 {len(lines)-5} 行已省略) ..."
+
+        return json.dumps(args, ensure_ascii=False, indent=2)
+    except json.JSONDecodeError:
+        if tool_name == "write_file":
+            return re.sub(
+                r'("content":\s*").*?(")',
+                r"\1... (内容过长已隐藏) ...\2",
+                args_json_str,
+                flags=re.DOTALL,
+            )
+        return args_json_str

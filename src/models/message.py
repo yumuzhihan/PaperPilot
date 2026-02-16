@@ -8,6 +8,7 @@ class Message(BaseModel):
     tool_calls: Optional[list[Any]] = None
     thinking: Optional[str] = None
     tool_name: Optional[str] = None
+    tool_call_id: Optional[str] = None
 
 
 class ChatHistory(BaseModel):

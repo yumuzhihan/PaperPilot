@@ -1,3 +1,4 @@
+import json
 from ollama import AsyncClient
 from ollama._types import Message
 from typing import AsyncGenerator, Optional
@@ -77,6 +78,9 @@ class OllamaLLM(LLMInterface):
             if chunk.message.tool_calls:
                 tool_calls.extend(chunk.message.tool_calls)
 
+                for tool_call in chunk.message.tool_calls:
+                    yield f"\n\n> 🛠️ **Calling Tool:** `{tool_call.function.name}`\n"
+
         if tool_calls:
             assistant_msg = ChatMessage(
                 role="assistant", content=full_content, tool_calls=tool_calls
@@ -88,9 +92,8 @@ class OllamaLLM(LLMInterface):
             messages.messages.append(assistant_msg)
 
             for tool_call in tool_calls:
-                yield f"\n\n> 🛠️ **Calling Tool:** `{tool_call.function.name}`...\n"
-
                 tool_result = await self._excute_tool(tool_call)
+                yield tool_result
 
                 messages.messages.append(
                     ChatMessage(

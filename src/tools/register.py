@@ -1,8 +1,17 @@
 from .tool_base import BaseTool
 from .arxiv_search_tool import ArxivSearchTool
 from .file_write_tool import FileWriteTool
+from .file_read_tool import FileReadTool
+from .arxiv_download_tool import ArxivDownloadTool
+from .pdf_read_tool import PDFReadTool
 
-all_tools: list[type[BaseTool]] = [ArxivSearchTool, FileWriteTool]
+all_tools: list[type[BaseTool]] = [
+    ArxivSearchTool,
+    FileWriteTool,
+    FileReadTool,
+    ArxivDownloadTool,
+    PDFReadTool,
+]
 
 
 class ToolRegister:

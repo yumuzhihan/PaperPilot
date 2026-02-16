@@ -3,11 +3,17 @@ from typing import Optional
 from src.core import LLMInterface
 from src.config import settings
 from .ollama_llm import OllamaLLM
+from .openai_llm import OpenAILLM
+from .zhipu_llm import ZhipuLLM
 
 
 class LLMFactory:
     _llm: Optional[LLMInterface] = None
-    _llm_maps: dict[str, type[LLMInterface]] = {"ollama": OllamaLLM}
+    _llm_maps: dict[str, type[LLMInterface]] = {
+        "ollama": OllamaLLM,
+        "openai": OpenAILLM,
+        "zhipu": ZhipuLLM,
+    }
 
     def __init__(self) -> None:
         pass

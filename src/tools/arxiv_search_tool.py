@@ -1,4 +1,3 @@
-from typing import Any
 from pydantic import BaseModel, Field
 import arxiv
 
@@ -62,8 +61,9 @@ class ArxivSearchTool(BaseTool):
                     f"[{index}] Title: {paper.title}\n"
                     f"    Authors: {', '.join(a.name for a in paper.authors[:3])}\n"
                     f"    Published: {paper.published.strftime('%Y-%m-%d')}\n"
-                    f"    Summary: {paper.summary[:200]}...\n"
+                    f"    Abstract: {paper.summary[:10]}... (如果你需要详细信息，请调用工具下载论文)\n"
                     f"    PDF: {paper.pdf_url}\n"
+                    f"    PDF_ID: {paper.get_short_id()}\n"
                 )
 
             result_str = "\n".join(response)

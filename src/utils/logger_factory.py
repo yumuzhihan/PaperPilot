@@ -60,7 +60,6 @@ class LoggerFactory:
     @staticmethod
     def get_logger(
         name: str,
-        logging_level: int = settings.LOG_LEVEL,
         use_rich: bool = True,
         show_time: bool = True,
         show_path: bool = False,
@@ -72,7 +71,6 @@ class LoggerFactory:
 
         Args:
             name: logger名称
-            logging_level: 日志级别，默认为 INFO
             use_rich: 是否使用 RICH 进行彩色输出，默认为 True
             show_time: 是否显示时间，默认为 True
             show_path: 是否显示文件路径，默认为 False
@@ -86,7 +84,7 @@ class LoggerFactory:
 
         if logger_key not in LoggerFactory._loggers:
             logger = logging.getLogger(name)
-            logger.setLevel(logging_level)
+            logger.setLevel(settings.LOG_LEVEL)
             logger.propagate = False
 
             logger.handlers.clear()
@@ -110,9 +108,7 @@ class LoggerFactory:
             logger.addHandler(console_handler)
 
             if enable_file_output:
-                file_handler = LoggerFactory._create_file_handler(
-                    logging_level, log_file_name
-                )
+                file_handler = LoggerFactory._create_file_handler(log_file_name)
                 logger.addHandler(file_handler)
 
             LoggerFactory._loggers[logger_key] = logger
@@ -121,13 +117,12 @@ class LoggerFactory:
 
     @staticmethod
     def _create_file_handler(
-        logging_level: int, log_file_name: Optional[str] = "paper_pilot.log"
+        log_file_name: Optional[str] = "paper_pilot.log",
     ) -> RotatingFileHandler:
         """
         创建文件输出 handler
 
         Args:
-            logging_level: 日志级别
             log_file_name: 日志文件名，如果为 None 则使用默认值
 
         Returns:
@@ -147,7 +142,7 @@ class LoggerFactory:
             backupCount=5,
             encoding="utf-8",
         )
-        file_handler.setLevel(logging_level)
+        file_handler.setLevel(settings.LOG_LEVEL)
 
         file_formatter = logging.Formatter(
             "%(asctime)s - [%(name)s] - %(levelname)s - %(message)s",
@@ -205,9 +200,7 @@ class LoggerFactory:
             logger.addHandler(streaming_handler)
 
             if enable_file_output:
-                file_handler = LoggerFactory._create_file_handler(
-                    logging_level, log_file_name
-                )
+                file_handler = LoggerFactory._create_file_handler(log_file_name)
                 logger.addHandler(file_handler)
 
             LoggerFactory._loggers[logger_key] = logger

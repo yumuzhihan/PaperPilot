@@ -11,8 +11,7 @@ class Settings(BaseSettings):
     # 基础配置
     LOG_DIR: Path = BASE_DIR / "logs"
     DATA_DIR: Path = BASE_DIR / "data"
-    LOG_LEVEL_STR: str = "INFO"
-    LOG_LEVEL: int = logging._nameToLevel[LOG_LEVEL_STR]
+    LOG_LEVEL: str = "INFO"
 
     # LLM 配置
     LLM_PROVIDER: str = "ollama"

@@ -1,21 +1,54 @@
 import asyncio
+from prompt_toolkit import PromptSession
+from prompt_toolkit.formatted_text import HTML
+from prompt_toolkit.styles import Style
 
+# 假设这些是你原本的导入
 from src.core.agent import AgentEngine
 from src.utils import SHARED_CONSOLE
 
+SYSTEM_PROPMT = """
+你是一个严谨的学术研究助手。你的目标是基于**真实文件内容**回答问题。除非用户明确表示不需要，你需要尽可能对你的工作存档，保存为 Markdown 文件。
+
+### 核心协议 (CRITICAL PROTOCOL)
+当用户要求总结、分析或解读论文时，你必须严格遵守以下执行流程。**禁止跳过任何步骤**：
+
+1.  **SEARCH**: 使用 `search_arxiv` 查找论文。
+2.  **CHECK**: 检查搜索结果。摘要(Abstract)仅供参考，**严禁**直接用于最终总结。
+3.  **DOWNLOAD**: 必须对目标论文调用 `arxiv_download`。
+4.  **READ**: 必须对下载的文件调用 `pdf_read`。
+5.  **SUMMARIZE**: 仅基于 `pdf_read` 返回的真实文本内容生成回答。
+
+### 违规惩罚
+如果你在没有调用 `pdf_read` 的情况下输出了论文总结，将被视为**严重错误**。
+如果你发现搜索结果中的 Summary 被截断，这是明确的信号要求你下载全文。
+
+### 思考格式
+在 Thinking 过程中，你必须显式列出：
+- "我是否已经下载了论文？" -> No
+- "我是否读取了全文？" -> No
+- "因此，我现在必须调用工具..."
+
+### 补充
+除非用户明确表示不需要，你需要尽可能对你的工作存档，保存为 Markdown 文件。
+"""
+
 
 async def main():
-    engine = AgentEngine(
-        system_prompt="你是一个全能助手。如果遇到不懂的问题，请使用搜索工具。请展示你的思考过程。"
-    )
+    engine = AgentEngine(system_prompt=SYSTEM_PROPMT)
 
     SHARED_CONSOLE.print(
         "[bold blue]Agent 启动完成！输入 'exit' 退出，输入 'save' 导出记录。[/bold blue]"
     )
+    session = PromptSession()
 
     while True:
         try:
-            user_input = SHARED_CONSOLE.input("[bold yellow]User > [/bold yellow]")
+            user_input = await session.prompt_async(
+                HTML("<b><yellow>User ></yellow></b> ")
+            )
+
+            user_input = user_input.strip()
 
             if user_input.lower() in ["exit", "quit"]:
                 break
@@ -28,7 +61,7 @@ async def main():
                 engine.reset()
                 continue
 
-            if not user_input.strip():
+            if not user_input:
                 continue
 
             await engine.chat(user_input)
@@ -37,6 +70,8 @@ async def main():
 
         except KeyboardInterrupt:
             print("\nUser interrupted.")
+            break
+        except EOFError:
             break
         except Exception as e:
             SHARED_CONSOLE.print_exception()
