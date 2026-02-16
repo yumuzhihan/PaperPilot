@@ -39,7 +39,23 @@ uv sync
 
 2. 配置环境变量：
 
-在项目根目录创建 `.env` 文件，配置你的 LLM API 密钥。
+在项目根目录创建 `.env` 文件，配置你的 LLM API 密钥。示例：
+
+```bash
+# LLM 提供商（支持 zhipu, openai, anthropic 等）
+LLM_PROVIDER=zhipu
+
+# API 地址（根据提供商不同而变化）
+LLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4/
+
+# API 密钥
+LLM_API_KEY=your_api_key_here
+
+# 使用的模型
+LLM_MODEL=glm-4.7-flash
+```
+
+> 注意：请将 `your_api_key_here` 替换为你的实际 API 密钥。
 
 3. 运行项目：
 
