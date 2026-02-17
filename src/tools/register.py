@@ -4,6 +4,7 @@ from .file_write_tool import FileWriteTool
 from .file_read_tool import FileReadTool
 from .arxiv_download_tool import ArxivDownloadTool
 from .pdf_read_tool import PDFReadTool
+from .time_sleep_tool import TimeSleepTool
 
 all_tools: list[type[BaseTool]] = [
     ArxivSearchTool,
@@ -11,6 +12,7 @@ all_tools: list[type[BaseTool]] = [
     FileReadTool,
     ArxivDownloadTool,
     PDFReadTool,
+    TimeSleepTool,
 ]
 
 
@@ -61,10 +63,10 @@ class ToolRegister:
 
         return "\n".join(descriptions)
 
-    def get_func_call_list(self) -> list[dict]:
+    def get_func_call_list(self, func_list: list[str] | None = None) -> list[dict]:
         """获取 function calling 形式的工具描述，单个工具可能形式为:
 
-        ```json
+        ```
         {
             "type": "function",
             "function": {
@@ -94,10 +96,20 @@ class ToolRegister:
         }
         ```
 
+        Args:
+            func_list (list[str]): 可选，传入则只返回传入的工具列表，否则返回全部工具
+
         Returns:
             list[dict]: 工具字典列表
         """
-        return [tool.to_func_call() for tool in self._tools.values()]
+        if func_list is None:
+            return [tool.to_func_call() for tool in self._tools.values()]
+        else:
+            selected_tools = []
+            for tool in self._tools.values():
+                if tool.name in func_list:
+                    selected_tools.append(tool)
+            return [tool.to_func_call() for tool in selected_tools]
 
     async def dispatch(self, tool_name: str, args: dict) -> str:
         tool = self.get_tool(tool_name)

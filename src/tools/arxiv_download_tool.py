@@ -28,7 +28,7 @@ class ArxivDownloadTool(BaseTool):
     def __init__(self):
         super().__init__()
 
-        self.client = arxiv.Client()
+        self.client = arxiv.Client(delay_seconds=3, num_retries=5)
         self.download_dir = Path(settings.DATA_DIR) / "arxiv_download"
         self.download_dir.mkdir(parents=True, exist_ok=True)
         self.logger = LoggerFactory.get_logger("ArxivDownloader")

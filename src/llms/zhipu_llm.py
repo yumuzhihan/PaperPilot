@@ -76,7 +76,7 @@ class ZhipuLLM(LLMInterface):
         self,
         messages: ChatHistory,
         tools: Optional[list] = None,
-    ) -> AsyncGenerator[str, None]:
+    ) -> AsyncGenerator[str | dict, None]:
         current_tools = tools if tools else tool_register.get_func_call_list()
         api_messages = self._convert_messages(messages)
 
@@ -102,7 +102,7 @@ class ZhipuLLM(LLMInterface):
         try:
             stream = await self.client.chat.completions.create(**request_params)
         except Exception as e:
-            yield f"Error calling Zhipu API: {str(e)}"
+            yield f"Error calling Zhipu API: {str(e)} \n request_params:{request_params}\n"
             return
 
         full_content = ""
@@ -148,8 +148,8 @@ class ZhipuLLM(LLMInterface):
                                 "arguments": tc.function.arguments or "",
                             },
                         }
-                        if tc.function.name:
-                            yield f"\n\n> 🛠️ **Calling Tool:** `{tc.function.name}`\n"
+                        # if tc.function.name:
+                        #     yield f"\n\n> 🛠️ **Calling Tool:** `{tc.function.name}`\n"
                     else:
                         if tc.function.arguments:
                             tool_calls_buffer[index]["function"][
@@ -167,26 +167,8 @@ class ZhipuLLM(LLMInterface):
 
             messages.messages.append(assistant_msg)
 
-            for tool_call in final_tool_calls:
-                func_name = tool_call["function"]["name"]
-                arguments = tool_call["function"]["arguments"]
-                call_id = tool_call["id"]
-
-                tool_result = await self._execute_tool(func_name, arguments)
-
-                yield tool_result
-
-                messages.messages.append(
-                    ChatMessage(
-                        role="tool",
-                        content=str(tool_result),
-                        tool_name=func_name,
-                        tool_call_id=call_id,
-                    )
-                )
-
-            async for chunk in self.response_stream(messages, tools=current_tools):
-                yield chunk
+            yield {"type": "tool_call_request", "tool_calls": final_tool_calls}
+            return
 
         else:
             final_msg = ChatMessage(role="assistant", content=full_content)

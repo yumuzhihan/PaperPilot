@@ -40,7 +40,7 @@ class OllamaLLM(LLMInterface):
         self,
         messages: ChatHistory,
         tools: Optional[list] = None,
-    ) -> AsyncGenerator[str, None]:
+    ) -> AsyncGenerator[str | dict, None]:
         current_tools = tools if tools else tool_register.get_func_call_list()
 
         stream = await self._async_client.chat(
@@ -78,8 +78,8 @@ class OllamaLLM(LLMInterface):
             if chunk.message.tool_calls:
                 tool_calls.extend(chunk.message.tool_calls)
 
-                for tool_call in chunk.message.tool_calls:
-                    yield f"\n\n> 🛠️ **Calling Tool:** `{tool_call.function.name}`\n"
+                # for tool_call in chunk.message.tool_calls:
+                #     yield f"\n\n> 🛠️ **Calling Tool:** `{tool_call.function.name}`\n"
 
         if tool_calls:
             assistant_msg = ChatMessage(
@@ -91,20 +91,8 @@ class OllamaLLM(LLMInterface):
 
             messages.messages.append(assistant_msg)
 
-            for tool_call in tool_calls:
-                tool_result = await self._excute_tool(tool_call)
-                yield tool_result
-
-                messages.messages.append(
-                    ChatMessage(
-                        role="tool",
-                        content=tool_result,
-                        tool_name=tool_call.function.name,
-                    )
-                )
-
-            async for chunk in self.response_stream(messages, tools=current_tools):
-                yield chunk
+            yield {"type": "tool_call_request", "tool_calls": tool_calls}
+            return
 
         else:
             final_msg = ChatMessage(role="assistant", content=full_content)

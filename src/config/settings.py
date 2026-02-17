@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     LOG_DIR: Path = BASE_DIR / "logs"
     DATA_DIR: Path = BASE_DIR / "data"
     LOG_LEVEL: str = "INFO"
+    MAX_TURNS: int = 30
 
     # LLM 配置
     LLM_PROVIDER: str = "ollama"

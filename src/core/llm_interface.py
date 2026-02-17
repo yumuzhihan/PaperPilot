@@ -17,7 +17,7 @@ class LLMInterface(ABC):
         self,
         messages: ChatHistory,
         tools: Optional[list] = None,
-    ) -> AsyncGenerator[str, None]:
+    ) -> AsyncGenerator[str | dict, None]:
         """以流式输出调用大模型
 
         Args:
@@ -28,7 +28,7 @@ class LLMInterface(ABC):
             AsyncGenerator[str, None]: 大模型的输出
 
         Yields:
-            Iterator[AsyncGenerator[str, None]]: 一个 chunk 的内容
+            Iterator[AsyncGenerator[str | dict, None]]: 一个 chunk 的内容或者处理后的字典
         """
         yield ""
         raise NotImplementedError("子类必须实现 response_stream 方法")

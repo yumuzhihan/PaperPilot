@@ -1,10 +1,8 @@
 import asyncio
 from prompt_toolkit import PromptSession
 from prompt_toolkit.formatted_text import HTML
-from prompt_toolkit.styles import Style
 
-# 假设这些是你原本的导入
-from src.core.agent import AgentEngine
+from src.core import AgentEngine
 from src.utils import SHARED_CONSOLE
 
 SYSTEM_PROPMT = """
@@ -35,11 +33,9 @@ SYSTEM_PROPMT = """
 
 
 async def main():
-    engine = AgentEngine(system_prompt=SYSTEM_PROPMT)
+    engine = AgentEngine()
 
-    SHARED_CONSOLE.print(
-        "[bold blue]Agent 启动完成！输入 'exit' 退出，输入 'save' 导出记录。[/bold blue]"
-    )
+    SHARED_CONSOLE.print("[bold blue]Agent 启动完成！请输入一个主题：")
     session = PromptSession()
 
     while True:
@@ -50,21 +46,7 @@ async def main():
 
             user_input = user_input.strip()
 
-            if user_input.lower() in ["exit", "quit"]:
-                break
-
-            if user_input.lower() == "save":
-                engine.export_history()
-                continue
-
-            if user_input.lower() == "reset":
-                engine.reset()
-                continue
-
-            if not user_input:
-                continue
-
-            await engine.chat(user_input)
+            await engine.run(user_input)
 
             SHARED_CONSOLE.print()
 

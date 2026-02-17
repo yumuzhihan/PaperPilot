@@ -20,7 +20,7 @@ class ArxivSearchTool(BaseTool):
     def __init__(self) -> None:
         super().__init__()
 
-        self.client = arxiv.Client()
+        self.client = arxiv.Client(delay_seconds=3, num_retries=5)
         self.logger = LoggerFactory.get_logger("search_arxiv")
 
     async def process(self, **kwargs) -> str:
