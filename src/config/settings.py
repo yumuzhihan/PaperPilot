@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     DATA_DIR: Path = BASE_DIR / "data"
     LOG_LEVEL: str = "INFO"
     MAX_TURNS: int = 30
+    OUTPUT_LANGUAGE: str = "中文"
 
     # LLM 配置
     LLM_PROVIDER: str = "ollama"

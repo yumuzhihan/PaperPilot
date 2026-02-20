@@ -33,12 +33,11 @@ SYSTEM_PROPMT = """
 
 
 async def main():
-    engine = AgentEngine()
-
     SHARED_CONSOLE.print("[bold blue]Agent 启动完成！请输入一个主题：")
     session = PromptSession()
 
     while True:
+        engine = AgentEngine()
         try:
             user_input = await session.prompt_async(
                 HTML("<b><yellow>User ></yellow></b> ")
@@ -57,6 +56,8 @@ async def main():
             break
         except Exception as e:
             SHARED_CONSOLE.print_exception()
+        finally:
+            del engine
 
 
 if __name__ == "__main__":

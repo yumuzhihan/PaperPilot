@@ -13,7 +13,7 @@ class ArxivInput(BaseModel):
 
 
 class ArxivSearchTool(BaseTool):
-    name = "search_arxiv"
+    name = "arxiv_search"
     description = "在 ArXiv 上搜索学术论文。如果结果不足，请使用 offset 参数翻页。"
     args_schema = ArxivInput
 

@@ -84,7 +84,7 @@ class LoggerFactory:
 
         if logger_key not in LoggerFactory._loggers:
             logger = logging.getLogger(name)
-            logger.setLevel(settings.LOG_LEVEL)
+            logger.setLevel(logging.getLevelName(settings.LOG_LEVEL))
             logger.propagate = False
 
             logger.handlers.clear()
@@ -142,7 +142,7 @@ class LoggerFactory:
             backupCount=5,
             encoding="utf-8",
         )
-        file_handler.setLevel(settings.LOG_LEVEL)
+        file_handler.setLevel(logging.getLevelName(settings.LOG_LEVEL))
 
         file_formatter = logging.Formatter(
             "%(asctime)s - [%(name)s] - %(levelname)s - %(message)s",
@@ -171,7 +171,7 @@ class LoggerFactory:
     @staticmethod
     def get_streaming_logger(
         name: str,
-        logging_level: int = logging.INFO,
+        logging_level: Optional[int] = None,
         enable_file_output: bool = True,
         log_file_name: Optional[str] = None,
     ) -> tuple[logging.Logger, StreamingHandler]:
@@ -180,7 +180,7 @@ class LoggerFactory:
 
         Args:
             name: logger名称
-            logging_level: 日志级别
+            logging_level: 日志级别，默认使用 settings.LOG_LEVEL
             enable_file_output: 是否启用文件输出，默认为 True
             log_file_name: 日志文件名，默认为 None（自动生成）
 
@@ -191,7 +191,12 @@ class LoggerFactory:
 
         if logger_key not in LoggerFactory._loggers:
             logger = logging.getLogger(name)
-            logger.setLevel(logging_level)
+            effective_level = (
+                logging_level
+                if logging_level is not None
+                else logging.getLevelName(settings.LOG_LEVEL)
+            )
+            logger.setLevel(effective_level)
             logger.propagate = False
 
             logger.handlers.clear()
