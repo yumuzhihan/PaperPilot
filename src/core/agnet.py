@@ -1,3 +1,4 @@
+import json
 import re
 from datetime import datetime
 from pathlib import Path
@@ -21,6 +22,8 @@ from src.utils import (
     SHARED_CONSOLE,
     SessionSnapshot,
     SessionStore,
+    ValidationResult,
+    extract_json_from_text,
     validate_planning_output,
     validate_research_output,
     validate_writing_output,
@@ -28,6 +31,9 @@ from src.utils import (
 
 
 class AgentEngine:
+    MAIN_TYP_DRAFT_KEY = "__main_typ__"
+    REFERENCES_BIB_DRAFT_KEY = "__references_bib__"
+
     def __init__(self, snapshot: SessionSnapshot | None = None) -> None:
         self.paper_context = snapshot.paper_context if snapshot else PaperContext()
         self.llm = llm_factory.get_llm()
@@ -229,6 +235,7 @@ class AgentEngine:
 
         output_dir = self._get_output_dir()
         output_dir.mkdir(parents=True, exist_ok=True)
+        self._restore_generated_files(output_dir)
 
         available_keys = (
             ", ".join(self.paper_context.bibliography.keys()) or "无可用文献"
@@ -284,8 +291,8 @@ class AgentEngine:
                 "success", f"writing_section_{index + 1:02d}", clean_content
             )
 
-        main_typ_path = self._generate_main_typ(output_dir)
-        pdf_path = self._compile_pdf(main_typ_path)
+        main_typ_path = self._restore_generated_files(output_dir)
+        pdf_path = await self._compile_pdf(main_typ_path)
         self.last_completed_pdf = str(pdf_path)
         self._save_checkpoint("success", "pdf_compiled")
         self.console.print(Rule("论文撰写完成！", style="green"))
@@ -436,16 +443,16 @@ class AgentEngine:
         text = re.sub(r"\\mathcal\{([^}]+)\}", r"cal(\1)", text)
         return text.strip()
 
-    def _generate_main_typ(self, output_dir: Path) -> Path:
-        bib_path = output_dir / "references.bib"
-        if self.paper_context.bibliography:
-            bib_path.write_text(
-                "\n\n".join(self.paper_context.bibliography.values()) + "\n",
-                encoding="utf-8",
-            )
-        else:
-            bib_path.write_text("", encoding="utf-8")
+    @staticmethod
+    def _get_section_filename(index: int, section_name: str) -> str:
+        return f"{index + 1:02d}_{section_name.replace(' ', '_')}.typ"
 
+    def _build_references_content(self) -> str:
+        if not self.paper_context.bibliography:
+            return ""
+        return "\n\n".join(self.paper_context.bibliography.values()) + "\n"
+
+    def _build_main_content(self) -> str:
         main_content = [
             '#set document(title: "'
             + self.paper_context.topic
@@ -465,7 +472,7 @@ class AgentEngine:
         ]
 
         for index, section in enumerate(self.paper_context.outline):
-            filename = f"{index + 1:02d}_{section.section_name.replace(' ', '_')}.typ"
+            filename = self._get_section_filename(index, section.section_name)
             main_content.append(f"= {section.section_name}")
             main_content.append(f'#include "{filename}"')
             main_content.append("")
@@ -474,32 +481,195 @@ class AgentEngine:
             main_content.append("#pagebreak()")
             main_content.append('#bibliography("references.bib", style: "ieee")')
 
+        return "\n".join(main_content)
+
+    def _restore_generated_files(self, output_dir: Path) -> Path:
+        for index, section in enumerate(self.paper_context.outline):
+            content = self.paper_context.drafts.get(section.section_name, "").strip()
+            if not content:
+                continue
+            filename = self._get_section_filename(index, section.section_name)
+            (output_dir / filename).write_text(content + "\n", encoding="utf-8")
+
+        references_content = self.paper_context.drafts.get(
+            self.REFERENCES_BIB_DRAFT_KEY
+        )
+        if references_content is None:
+            references_content = self._build_references_content()
+        (output_dir / "references.bib").write_text(references_content, encoding="utf-8")
+        self.paper_context.drafts[self.REFERENCES_BIB_DRAFT_KEY] = references_content
+
+        main_content = self.paper_context.drafts.get(self.MAIN_TYP_DRAFT_KEY)
+        if not main_content:
+            main_content = self._build_main_content()
         main_typ_path = output_dir / "main.typ"
-        main_typ_path.write_text("\n".join(main_content), encoding="utf-8")
+        main_typ_path.write_text(main_content, encoding="utf-8")
+        self.paper_context.drafts[self.MAIN_TYP_DRAFT_KEY] = main_content
         self.console.print(
             f"\n[bold blue]主配置文件已生成: {main_typ_path}[/bold blue]"
         )
         return main_typ_path
 
-    def _compile_pdf(self, main_typ_path: Path) -> Path:
+    def _generate_main_typ(self, output_dir: Path) -> Path:
+        return self._restore_generated_files(output_dir)
+
+    def _collect_generated_file_contents(self, output_dir: Path) -> dict[str, str]:
+        generated_files: dict[str, str] = {
+            "main.typ": (output_dir / "main.typ").read_text(encoding="utf-8"),
+            "references.bib": (output_dir / "references.bib").read_text(
+                encoding="utf-8"
+            ),
+        }
+        for index, section in enumerate(self.paper_context.outline):
+            filename = self._get_section_filename(index, section.section_name)
+            filepath = output_dir / filename
+            if filepath.exists():
+                generated_files[filename] = filepath.read_text(encoding="utf-8")
+        return generated_files
+
+    def _validate_typst_repair_output(
+        self, text: str, allowed_paths: set[str]
+    ) -> ValidationResult:
+        stripped = text.strip()
+        data = extract_json_from_text(stripped)
+        if not isinstance(data, dict):
+            return ValidationResult(False, stripped, "修复结果不是合法 JSON object")
+
+        files = data.get("files")
+        if not isinstance(files, list) or not files:
+            return ValidationResult(False, stripped, "修复结果缺少非空 files 列表")
+
+        normalized_files: dict[str, str] = {}
+        for item in files:
+            if not isinstance(item, dict):
+                return ValidationResult(False, stripped, "files 列表元素必须是 object")
+            path = item.get("path")
+            content = item.get("content")
+            if not isinstance(path, str) or path not in allowed_paths:
+                return ValidationResult(
+                    False, stripped, f"存在非法修复文件路径: {path}"
+                )
+            if not isinstance(content, str) or not content.strip():
+                return ValidationResult(False, stripped, f"修复文件 {path} 内容为空")
+            normalized_files[path] = (
+                self._clean_typst_content(content)
+                if path.endswith(".typ")
+                else content.strip() + "\n"
+            )
+
+        return ValidationResult(True, stripped, data=normalized_files)
+
+    async def _repair_typst_files(
+        self, output_dir: Path, compile_error: str
+    ) -> dict[str, str]:
+        generated_files = self._collect_generated_file_contents(output_dir)
+        allowed_paths = set(generated_files.keys())
+        file_blocks = []
+        for path, content in generated_files.items():
+            file_blocks.append(f"--- FILE: {path} ---\n{content}\n")
+
+        prompt = "\n".join(
+            [
+                "你是一名 Typst 编译修复专家。下面给你一个编译失败的 Typst 工程。",
+                "请在尽量少改动原文语义、结构、引用键和参考文献内容的前提下，修复会导致编译失败的问题。",
+                "你只能修改我提供的这些文件，不能新增文件。",
+                "请严格只返回 JSON object，不要输出 Markdown 代码块、解释或额外文字。",
+                "JSON 格式如下：",
+                '{"files": [{"path": "main.typ", "content": "修复后的完整文件内容"}]}',
+                "只返回你实际修改过的文件；path 必须来自以下集合：",
+                json.dumps(sorted(allowed_paths), ensure_ascii=False),
+                "编译错误信息：",
+                compile_error,
+                "当前文件内容：",
+                "\n".join(file_blocks),
+            ]
+        )
+
+        result = await self._run_llm_with_validation(
+            base_history=self._new_history(prompt),
+            tools=[],
+            validator=lambda text: self._validate_typst_repair_output(
+                text, allowed_paths
+            ),
+            label="typst_repair",
+        )
+        return result.data
+
+    def _apply_repaired_files(
+        self, output_dir: Path, repaired_files: dict[str, str]
+    ) -> None:
+        section_path_map = {
+            self._get_section_filename(
+                index, section.section_name
+            ): section.section_name
+            for index, section in enumerate(self.paper_context.outline)
+        }
+        for path, content in repaired_files.items():
+            normalized_content = content if content.endswith("\n") else content + "\n"
+            (output_dir / path).write_text(normalized_content, encoding="utf-8")
+            if path == "main.typ":
+                self.paper_context.drafts[self.MAIN_TYP_DRAFT_KEY] = normalized_content
+            elif path == "references.bib":
+                self.paper_context.drafts[self.REFERENCES_BIB_DRAFT_KEY] = (
+                    normalized_content
+                )
+            elif path in section_path_map:
+                self.paper_context.drafts[section_path_map[path]] = (
+                    normalized_content.strip()
+                )
+
+    async def _compile_pdf(self, main_typ_path: Path) -> Path:
         self.console.print("正在调用 Typst 引擎编译 PDF...")
         pdf_path = main_typ_path.parent / "Paper_Output.pdf"
         temp_pdf_path = main_typ_path.parent / "Paper_Output.tmp.pdf"
 
-        if temp_pdf_path.exists():
-            temp_pdf_path.unlink()
+        last_error = ""
+        for attempt in range(1, self.max_validation_retries + 1):
+            if temp_pdf_path.exists():
+                temp_pdf_path.unlink()
 
-        try:
-            typst.compile(str(main_typ_path), output=str(temp_pdf_path))
-        except Exception as exc:
-            raise RuntimeError(f"PDF 编译失败，可能是 Typst 语法错误: {exc}") from exc
+            try:
+                typst.compile(str(main_typ_path), output=str(temp_pdf_path))
+            except Exception as exc:
+                last_error = str(exc)
+                self.last_error = last_error
+                self._save_checkpoint(
+                    "error",
+                    f"typst_compile_attempt_{attempt}",
+                    last_error,
+                )
+                if attempt >= self.max_validation_retries:
+                    break
 
-        if not temp_pdf_path.exists() or temp_pdf_path.stat().st_size <= 0:
-            raise RuntimeError("PDF 编译失败：输出文件不存在或为空")
+                self.console.print(
+                    f"[yellow]Typst 编译失败，第 {attempt}/{self.max_validation_retries} 次修复: {last_error}[/yellow]"
+                )
+                repaired_files = await self._repair_typst_files(
+                    main_typ_path.parent, last_error
+                )
+                self._apply_repaired_files(main_typ_path.parent, repaired_files)
+                self._save_checkpoint(
+                    "success",
+                    f"typst_repair_attempt_{attempt}",
+                    json.dumps(sorted(repaired_files.keys()), ensure_ascii=False),
+                )
+                continue
 
-        temp_pdf_path.replace(pdf_path)
-        self.console.print(f"[bold green]PDF 编译成功！路径: {pdf_path}[/bold green]")
-        return pdf_path
+            if not temp_pdf_path.exists() or temp_pdf_path.stat().st_size <= 0:
+                last_error = "PDF 编译失败：输出文件不存在或为空"
+                self.last_error = last_error
+                if attempt >= self.max_validation_retries:
+                    break
+                continue
+
+            temp_pdf_path.replace(pdf_path)
+            self.last_error = None
+            self.console.print(
+                f"[bold green]PDF 编译成功！路径: {pdf_path}[/bold green]"
+            )
+            return pdf_path
+
+        raise RuntimeError(f"PDF 编译失败，可能是 Typst 语法错误: {last_error}")
 
     def _save_checkpoint(
         self, checkpoint_type: str, label: str, output_preview: str | None = None
