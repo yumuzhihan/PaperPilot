@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     LLM_API_KEY: Optional[str] = None
     LLM_TEMP: float = 0.7
     LLM_THINK: bool = True
+    LLM_RETRY_MAX_ATTEMPTS: int = 5
+    LLM_RETRY_BASE_DELAY: float = 1.0
+    LLM_RETRY_MAX_DELAY: float = 16.0
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE_PATH,

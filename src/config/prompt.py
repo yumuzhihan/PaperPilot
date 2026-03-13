@@ -51,7 +51,7 @@ class PromptManager:
 
 请你规划一份详细的论文大纲。
 【严格约束】
-1. 你的回答必须只包含合法的 JSON 列表，不要包含 Markdown 代码块标记（如 ```json）。
+1. 你的回答必须只包含合法的 JSON object，不要包含 Markdown 代码块标记（如 ```json）。
 2. JSON 结构必须符合以下 Schema，以便我可以自动解析。
 3. 如果对于主题包含任何不确定的内容，请你考虑调用工具。
 4. 你最终输出的结果应该使用 {settings.OUTPUT_LANGUAGE}
@@ -134,6 +134,7 @@ class PromptManager:
    - 正确示范：`== 应用场景`
 9. **加粗**: 严禁使用 `**`！请使用单星号 `*文字*` 进行加粗。
 10. **引用**: 必须使用 Typst 语法 `@citekey`（例如 `@smith2023`）。
+11. **禁止结构化残留**: 严禁输出 `<notes>`、`<references>`、JSON、tool call 痕迹、provider 报错文本。
 
 【Typst 数学公式严格规范 (极其重要)】
 如果你需要在文章中输出数学公式，你必须彻底放弃 LaTeX 的数学语法，改用以下 Typst 原生语法：

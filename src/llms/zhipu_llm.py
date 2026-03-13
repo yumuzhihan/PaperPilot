@@ -6,7 +6,6 @@ from openai.types.chat import ChatCompletionMessageParam
 
 from src.config.settings import settings
 from src.core import LLMInterface
-from src.tools import tool_register
 from src.models import ChatHistory, Message as ChatMessage
 
 
@@ -77,7 +76,7 @@ class ZhipuLLM(LLMInterface):
         messages: ChatHistory,
         tools: Optional[list] = None,
     ) -> AsyncGenerator[str | dict, None]:
-        current_tools = tools if tools else tool_register.get_func_call_list()
+        current_tools = self.resolve_tools(tools)
         api_messages = self._convert_messages(messages)
 
         request_params = {
@@ -99,11 +98,10 @@ class ZhipuLLM(LLMInterface):
         if extra_body:
             request_params["extra_body"] = extra_body
 
-        try:
-            stream = await self.client.chat.completions.create(**request_params)
-        except Exception as e:
-            yield f"Error calling Zhipu API: {str(e)} \n request_params:{request_params}\n"
-            return
+        stream = await self.call_with_backoff(
+            lambda: self.client.chat.completions.create(**request_params),
+            "Zhipu",
+        )
 
         full_content = ""
         full_thinking = ""
@@ -152,12 +150,15 @@ class ZhipuLLM(LLMInterface):
                         #     yield f"\n\n> 🛠️ **Calling Tool:** `{tc.function.name}`\n"
                     else:
                         if tc.function.arguments:
-                            tool_calls_buffer[index]["function"][
-                                "arguments"
-                            ] += tc.function.arguments
+                            tool_calls_buffer[index]["function"]["arguments"] += (
+                                tc.function.arguments
+                            )
 
         if tool_calls_buffer:
-            final_tool_calls = list(tool_calls_buffer.values())
+            final_tool_calls = [
+                self.normalize_tool_call(tool_call, index)
+                for index, tool_call in tool_calls_buffer.items()
+            ]
 
             assistant_msg = ChatMessage(
                 role="assistant", content=full_content, tool_calls=final_tool_calls

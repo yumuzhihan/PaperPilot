@@ -1,12 +1,8 @@
-import json
 from ollama import AsyncClient
-from ollama._types import Message
 from typing import AsyncGenerator, Optional
 
-from src.config.prompt import PromptTemplate, PromptManager
 from src.config.settings import settings
 from src.core import LLMInterface
-from src.tools import tool_register
 from src.models import ChatHistory, Message as ChatMessage
 
 
@@ -20,35 +16,25 @@ class OllamaLLM(LLMInterface):
             AsyncClient(host=self.base_url) if self.base_url else AsyncClient()
         )
 
-    def _build_message(self, template: str, message: str) -> str:
-        if template:
-            try:
-                prompt_template = PromptTemplate(template)
-                prompt = PromptManager.get_prompt(prompt_template)
-                return f"{prompt}{message}"
-            except ValueError:
-                pass
-        return message
-
-    async def _excute_tool(self, tool_call: Message.ToolCall) -> str:
-        """辅助方法：执行工具并返回结果字符串"""
-        func_name = tool_call.function.name
-        arguments = dict(tool_call.function.arguments)
-        return await tool_register.dispatch(func_name, arguments)
-
     async def response_stream(
         self,
         messages: ChatHistory,
         tools: Optional[list] = None,
     ) -> AsyncGenerator[str | dict, None]:
-        current_tools = tools if tools else tool_register.get_func_call_list()
+        current_tools = self.resolve_tools(tools)
 
-        stream = await self._async_client.chat(
-            model=self.model,
-            messages=[message.model_dump() for message in messages.messages],
-            options={"temperature": self.temperature},
-            stream=True,
-            tools=current_tools,
+        request_kwargs = {
+            "model": self.model,
+            "messages": [message.model_dump() for message in messages.messages],
+            "options": {"temperature": self.temperature},
+            "stream": True,
+        }
+        if current_tools is not None:
+            request_kwargs["tools"] = current_tools
+
+        stream = await self.call_with_backoff(
+            lambda: self._async_client.chat(**request_kwargs),
+            "Ollama",
         )
 
         full_content = ""
@@ -82,8 +68,12 @@ class OllamaLLM(LLMInterface):
                 #     yield f"\n\n> 🛠️ **Calling Tool:** `{tool_call.function.name}`\n"
 
         if tool_calls:
+            normalized_tool_calls = [
+                self.normalize_tool_call(tool_call, index)
+                for index, tool_call in enumerate(tool_calls)
+            ]
             assistant_msg = ChatMessage(
-                role="assistant", content=full_content, tool_calls=tool_calls
+                role="assistant", content=full_content, tool_calls=normalized_tool_calls
             )
 
             if full_thinking:
@@ -91,7 +81,7 @@ class OllamaLLM(LLMInterface):
 
             messages.messages.append(assistant_msg)
 
-            yield {"type": "tool_call_request", "tool_calls": tool_calls}
+            yield {"type": "tool_call_request", "tool_calls": normalized_tool_calls}
             return
 
         else:

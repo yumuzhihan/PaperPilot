@@ -1,5 +1,5 @@
 from typing import Literal, Any, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Message(BaseModel):
@@ -12,4 +12,4 @@ class Message(BaseModel):
 
 
 class ChatHistory(BaseModel):
-    messages: list[Message]
+    messages: list[Message] = Field(default_factory=list)

@@ -1,5 +1,5 @@
 from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class SectionStatus(Enum):
@@ -22,14 +22,14 @@ class PaperStatus(Enum):
 class SectionContext(BaseModel):
     section_name: str = ""
     section_status: SectionStatus = SectionStatus.PENDING
-    subsections: list["SectionContext"] = []
+    subsections: list["SectionContext"] = Field(default_factory=list)
 
 
 class PaperContext(BaseModel):
     topic: str = ""
     title: str = ""
-    outline: list[SectionContext] = []
-    bibliography: dict[str, str] = {}
+    outline: list[SectionContext] = Field(default_factory=list)
+    bibliography: dict[str, str] = Field(default_factory=dict)
     current_section_index: int = 0
-    drafts: dict[str, str] = {}
+    drafts: dict[str, str] = Field(default_factory=dict)
     status: PaperStatus = PaperStatus.PLANNING
